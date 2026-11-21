@@ -92,6 +92,7 @@ function readConfig() {
         token: cfg.COPIA_TOKEN ?? '',
         server: (cfg.COPIA_SERVER || DEFAULT_SERVER).replace(/\/+$/, ''),
         device: cfg.COPIA_DEVICE || GLib.get_host_name(),
+        debug: cfg.COPIA_DEBUG ?? '',
     };
 }
 
@@ -193,6 +194,7 @@ class Copia {
         this._connected = false;
         this._cancellable = new Gio.Cancellable();
         this._cacheDir = GLib.build_filenamev([GLib.get_user_cache_dir(), 'copia']);
+        this._debug = ['1', 'true', 'yes'].includes((this._cfg.debug ?? '').toLowerCase());
 
         this._session = new Soup.Session({timeout: 60, user_agent: 'copia-gnome/0.1'});
         this._eventsSession = new Soup.Session({timeout: 0, idle_timeout: 0, user_agent: 'copia-gnome/0.1'});
@@ -468,7 +470,7 @@ class Copia {
             this._debounceId = 0;
             this._capture(false).catch(e => {
                 if (!isCancelled(e))
-                    log(`upload: ${e.message}`);
+                    log(`upload failed: ${e}\n${e.stack ?? ''}`);
             });
             return GLib.SOURCE_REMOVE;
         });
@@ -478,6 +480,8 @@ class Copia {
         const types = St.Clipboard.get_default().get_mimetypes(CLIPBOARD);
         if (!types.length || types.some(t => SECRET_HINTS.includes(t)))
             return;
+        if (this._debug)
+            log(`clipboard types: ${types.join(', ')}`);
 
         // 1. Copied files (Nautilus and most apps offer one of these).
         const uriType = types.includes('text/uri-list') ? 'text/uri-list' : types.includes(FILES_TYPE) ? FILES_TYPE : null;
