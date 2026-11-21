@@ -115,9 +115,30 @@ tail -f ~/Library/Logs/copia.log
 
 Items over the auto-sync limit are skipped on the Mac and noted in the log. Newer macOS versions may ask once whether `copia-agent` may read the clipboard; allow it.
 
+## iPhone / iPad (`ios-shortcuts/`)
+
+iOS doesn't let apps watch the clipboard in the background, so the iPhone uses two Shortcuts you run yourself, best assigned to Back Tap:
+
+- **Send to Copia** sends the clipboard (text, image or file) to the server.
+- **Get from Copia** puts the server's current item on the clipboard.
+
+While the Mac is awake and nearby, Universal Clipboard also carries iPhone copies to the Mac, and the Mac agent forwards them automatically.
+
+Install (on a Mac with the agent configured):
+
+```bash
+./ios-shortcuts/build.sh            # optional argument: device name (default: iphone)
+```
+
+This fills in your server and token, signs both shortcuts with the built-in `shortcuts sign`, and writes them to `~/Desktop`. AirDrop them to the iPhone, tap **Add Shortcut**, then delete the files from the Desktop, since they contain your token. Then:
+
+- Settings → Accessibility → Touch → Back Tap: **Double Tap** = Send to Copia, **Triple Tap** = Get from Copia
+- Settings → Apps → Shortcuts → **Paste from Other Apps** → Allow
+- Keep Tailscale connected on the iPhone
+
 ## Status
 
 - [x] Server
 - [x] GNOME Shell extension (Ubuntu / Wayland)
 - [x] macOS agent (Swift)
-- [ ] iOS Shortcuts
+- [x] iOS Shortcuts
