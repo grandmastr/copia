@@ -22,18 +22,34 @@ sudo loginctl enable-linger "$USER"
 From your workstation, in the repository:
 
 ```bash
-./server/deploy/deploy.sh <ssh-host>
+./server/deploy/deploy.sh <ssh-host> [install-dir]
 ```
+
+`install-dir` is an absolute path on the host that holds everything: binary, source, token file and data. It defaults to `~/copia`; if you choose another (say `/srv/apps/copia`), pass the same one on every deploy. The examples below use `~/copia`.
 
 The script:
 
-1. Copies the source to `~/copia/src` on the host.
-2. On first run only, creates `~/copia/copia.env` with a random 64-character token (`openssl rand -hex 32`), readable only by you.
-3. Builds `~/copia/bin/copia-server` on the host.
+1. Copies the source to `<install-dir>/src` on the host.
+2. On first run only, creates `<install-dir>/copia.env` with a random 64-character token (`openssl rand -hex 32`), readable only by you.
+3. Builds `<install-dir>/bin/copia-server` on the host.
 4. Installs and (re)starts the `copia.service` systemd user service.
 5. Checks `http://127.0.0.1:8787/healthz` and prints `healthz: ok`.
 
 Run the same command again to upgrade. Your token and data are kept.
+
+### Moving an existing install
+
+To move a running server to another directory (your devices don't need any change):
+
+```bash
+# on the server
+systemctl --user stop copia
+mkdir -p /new/parent && mv ~/copia /new/parent/copia
+# from your workstation
+./server/deploy/deploy.sh <ssh-host> /new/parent/copia
+```
+
+The deploy rewrites the service to point at the new directory and restarts it. The target must be writable by your user. On SELinux systems (Fedora, RHEL), if the service won't start from the new location, run `restorecon -Rv /new/parent/copia` and check `journalctl --user -u copia`.
 
 ### Getting the token to your devices
 
@@ -50,13 +66,13 @@ Then add `COPIA_SERVER=http://<server>:8787` to the same file (see [`copia.env.e
 
 ## Configuration
 
-The server reads environment variables from `~/copia/copia.env` (via the systemd unit's `EnvironmentFile`). Restart after changing it: `systemctl --user restart copia`.
+The server reads environment variables from `<install-dir>/copia.env` (via the systemd unit's `EnvironmentFile`). Restart after changing it: `systemctl --user restart copia`.
 
 | Variable | Default | Meaning |
 |---|---|---|
 | `COPIA_TOKEN` | *(required)* | Shared secret, at least 16 characters |
 | `COPIA_ADDR` | `:8787` | Address and port to listen on |
-| `COPIA_DATA` | `~/copia/data` | Storage directory |
+| `COPIA_DATA` | `<install-dir>/data` | Storage directory (set by the service; can be overridden in `copia.env`) |
 | `COPIA_MAX_ITEMS` | `1` | Items to keep. With 1, each copy replaces the last and the old one is deleted from disk |
 | `COPIA_MAX_AGE` | `24h` | Older items are dropped after this, except the newest, which is kept until something replaces it |
 | `COPIA_AUTOSYNC_LIMIT` | `20MB` | Larger items are marked `autoSync: false`; clients fetch them only when asked |
@@ -80,7 +96,7 @@ Every request (except `/healthz`) is logged with method, path, status, size, dur
 ### Storage layout
 
 ```
-~/copia/
+<install-dir>/           ~/copia by default
 ├── copia.env            token and settings (mode 600)
 ├── bin/copia-server
 ├── src/                 source copied by deploy.sh

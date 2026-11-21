@@ -16,7 +16,7 @@ Copia moves whatever you copy, which can include sensitive things. This page des
 
 | Place | File |
 |---|---|
-| Server | `~/copia/copia.env` (mode 600) |
+| Server | `<install-dir>/copia.env`, `~/copia/copia.env` by default (mode 600) |
 | Linux and Mac clients | `~/.config/copia/copia.env` (mode 600) |
 | iPhone / iPad | Inside the two shortcuts |
 | Temporarily | The signed `.shortcut` files `ios-shortcuts/build.sh` writes to the Mac's Desktop: delete them after importing |
@@ -25,7 +25,7 @@ The repository contains no secrets: `copia.env.example` and the shortcut templat
 
 ### Rotating the token
 
-1. On the server, put a new value in `~/copia/copia.env` (`openssl rand -hex 32`) and run `systemctl --user restart copia`.
+1. On the server, put a new value in `copia.env` in the install directory (`openssl rand -hex 32`) and run `systemctl --user restart copia`.
 2. Update `COPIA_TOKEN` in `~/.config/copia/copia.env` on each computer, then log out and back in (Linux) or run `./mac-agent/install.sh` (macOS).
 3. Rebuild and re-import the iOS shortcuts.
 

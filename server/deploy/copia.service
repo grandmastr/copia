@@ -1,10 +1,12 @@
 [Unit]
 Description=Copia clipboard server
-Documentation=file://%h/copia/src/README.md
+Documentation=file://__COPIA_DIR__/src/README.md
 
 [Service]
-EnvironmentFile=%h/copia/copia.env
-ExecStart=%h/copia/bin/copia-server
+EnvironmentFile=__COPIA_DIR__/copia.env
+Environment=COPIA_DATA=__COPIA_DIR__/data
+WorkingDirectory=__COPIA_DIR__
+ExecStart=__COPIA_DIR__/bin/copia-server
 Restart=on-failure
 RestartSec=2
 NoNewPrivileges=yes
