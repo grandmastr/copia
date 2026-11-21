@@ -5,6 +5,7 @@
 //   COPIA_SERVER=http://asgard:8787       (optional)
 //   COPIA_DEVICE=my-laptop                (optional, defaults to the hostname)
 
+import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
 import GObject from 'gi://GObject';
@@ -137,8 +138,8 @@ class CopiaIndicator extends PanelMenu.Button {
         super._init(0.0, 'Copia');
         this._copia = copia;
 
-        this._icon = new St.Icon({icon_name: 'edit-paste-symbolic', style_class: 'system-status-icon'});
-        this.add_child(this._icon);
+        this._label = new St.Label({text: 'Copia', y_align: Clutter.ActorAlign.CENTER});
+        this.add_child(this._label);
 
         this._status = new PopupMenu.PopupMenuItem('Connecting…', {reactive: false});
         this.menu.addMenuItem(this._status);
@@ -159,7 +160,7 @@ class CopiaIndicator extends PanelMenu.Button {
 
     setStatus(text, connected) {
         this._status.label.text = text;
-        this._icon.opacity = connected ? 255 : 110;
+        this._label.opacity = connected ? 255 : 110;
     }
 
     setRecent(items) {
