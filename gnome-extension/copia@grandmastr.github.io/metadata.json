@@ -1,0 +1,8 @@
+{
+  "uuid": "copia@grandmastr.github.io",
+  "name": "Copia",
+  "description": "Sync your clipboard (text, images and files) with your other devices through a self-hosted Copia server.",
+  "shell-version": ["48", "49", "50"],
+  "url": "https://github.com/grandmastr/copia",
+  "version-name": "0.1.0"
+}

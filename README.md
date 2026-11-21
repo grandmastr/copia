@@ -14,7 +14,7 @@ A self-hosted clipboard that syncs text, images and files between Linux, macOS, 
 ```
 
 - **Server** (`server/`): a single Go binary with no third-party dependencies. It stores the latest clipboard items (text, an image, or one or more files) and pushes each new item to connected devices over Server-Sent Events.
-- **Desktop agents** (planned) watch the local clipboard, upload new items, and apply items arriving from other devices. Items larger than the auto-sync limit only download when you paste.
+- **Desktop agents** watch the local clipboard, upload new items, and apply items arriving from other devices. Items larger than the auto-sync limit only download when you paste.
 - **iOS** (planned): two Shortcuts, *Send Clip* and *Get Clip*. iOS doesn't let apps watch the clipboard in the background, so on iPhone and iPad it's one tap rather than automatic.
 
 Run it on a private network such as [Tailscale](https://tailscale.com) and protect it with a token. It isn't designed to be exposed to the public internet.
@@ -83,9 +83,28 @@ From your workstation:
 
 This copies the source to the host and builds it there (Go 1.22+ needed on the host). It creates `~/copia/copia.env` with a random token on first run, then installs and restarts the `copia.service` user service. Logs: `journalctl --user -u copia -f`.
 
+## GNOME extension (`gnome-extension/`)
+
+Watches the clipboard and uploads what you copy: text, images, and files copied in Nautilus. It also receives items from your other devices live. Received files are saved to `~/.cache/copia/<id>/` and pasted as normal files. A top-bar menu shows connection status, a sync on/off switch, "Send clipboard now", and recent items (click one to put it on this computer's clipboard, including large items that weren't synced automatically).
+
+It skips anything a password manager marks as secret (`x-kde-passwordManagerHint`). Folders aren't synced yet.
+
+Setup:
+
+```bash
+mkdir -p ~/.config/copia
+# COPIA_TOKEN is required. COPIA_SERVER defaults to http://asgard:8787, COPIA_DEVICE to the hostname.
+printf 'COPIA_TOKEN=%s\nCOPIA_SERVER=http://your-server:8787\n' "<token>" > ~/.config/copia/copia.env
+chmod 600 ~/.config/copia/copia.env
+./gnome-extension/install.sh      # on Wayland, log out and back in, then:
+gnome-extensions enable copia@grandmastr.github.io
+```
+
+Logs: `journalctl --user -f -o cat /usr/bin/gnome-shell | grep copia`
+
 ## Status
 
 - [x] Server
-- [ ] GNOME Shell extension (Ubuntu / Wayland)
+- [x] GNOME Shell extension (Ubuntu / Wayland)
 - [ ] macOS agent (Swift)
 - [ ] iOS Shortcuts
