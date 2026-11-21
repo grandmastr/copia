@@ -34,6 +34,27 @@ iPad: same steps. If iCloud sync for Shortcuts is on, they appear on the iPad au
 - **iPhone → other devices:** copy something, double-tap the back of the phone. A notification confirms *Sent to Copia*; your desktops have it on their clipboard a moment later.
 - **Other devices → iPhone:** copy on the desktop, triple-tap the back of the phone, paste. Files land on the clipboard too; paste them in the Files app.
 
+## Pasting on the iPhone
+
+Things you copy on other devices don't appear on the iPhone's clipboard by themselves. iOS only lets the app you're using touch the clipboard, and nothing can update it in the background, so every clipboard sync tool on iPhone works this way (except Apple's own Universal Clipboard). Something has to run **Get from Copia** before you paste. There are two good ways to do that.
+
+### Option 1: Back Tap (works everywhere)
+
+Set **Settings → Accessibility → Touch → Back Tap → Triple Tap → Get from Copia**. Then, in any app: triple-tap the back of the phone, wait for *Copied from Copia*, and paste.
+
+### Option 2: Fetch automatically when you open an app
+
+A personal automation can run **Get from Copia** every time you open the apps you usually paste into, so the latest copy is already waiting:
+
+1. Open **Shortcuts → Automation → + → App**.
+2. Choose the apps (for example Messages, Notes, WhatsApp, Mail).
+3. Select **Is Opened**, and set it to **Run Immediately** (not *Run After Confirmation*).
+4. Tap **Next** and choose **Get from Copia**.
+
+Opening one of those apps now fetches the current item and puts it on the clipboard without a tap.
+
+Keep in mind that this **replaces whatever is on the iPhone's clipboard** every time you open one of those apps, including something you just copied on the iPhone itself. Choose apps where you paste in from other devices more than you copy within the phone, and use Back Tap everywhere else. The two options work well together.
+
 ## How the shortcuts work
 
 **Send to Copia** gets the clipboard and checks its type. Text is sent as a form field named `text`; anything else (photos, files) is sent as a file upload named `file`. Both go to `POST /clip` with your token and device name.
