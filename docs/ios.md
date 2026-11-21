@@ -49,7 +49,7 @@ A good setup: **double tap → Get from Copia**, and **Send to Copia** on the Ac
 
 If you only have one button free, put the **Copia** shortcut on it (it's built by `build.sh` along with the other two). Pressing the button shows a two-item menu: **Send to Copia** or **Get from Copia**. It contains both flows itself, so it works even without the other two shortcuts installed.
 
- A single press can't safely work out the direction by itself: iOS doesn't tell a shortcut *when* something was copied, so it can't tell whether your iPhone clipboard is new (send it) or old (a copy from another device should replace it). Guessing wrong would overwrite your latest copy on the server.
+A single press can't safely work out the direction by itself: iOS doesn't tell a shortcut *when* something was copied, so it can't tell whether your iPhone clipboard is new (send it) or old (a copy from another device should replace it). Guessing wrong would overwrite your latest copy on the server.
 
 ## Sending from the iPhone
 
