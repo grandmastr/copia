@@ -123,3 +123,11 @@ copia.env.example  Client configuration template
 - Sync folders (as a zip)
 - A menu bar icon for the Mac agent
 - Ready-signed iOS shortcuts that ask for the server and token on import
+
+## Contributing
+
+Issues and pull requests are welcome. Please keep the project free of third-party dependencies, and see the [docs](docs/) for how each part works.
+
+## License
+
+[MIT](LICENSE) © grandmastr
