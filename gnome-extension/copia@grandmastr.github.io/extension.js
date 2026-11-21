@@ -19,10 +19,35 @@ import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 
 Gio._promisify(Soup.Session.prototype, 'send_and_read_async');
 Gio._promisify(Soup.Session.prototype, 'send_async');
-Gio._promisify(Gio.DataInputStream.prototype, 'read_line_async', 'read_line_finish_utf8');
 Gio._promisify(Gio.File.prototype, 'load_contents_async');
 Gio._promisify(Gio.File.prototype, 'query_info_async');
-Gio._promisify(Gio.File.prototype, 'replace_contents_bytes_async', 'replace_contents_finish');
+
+// These two pair an _async call with a differently named _finish. GNOME Shell may
+// already have promisified them with other finish functions (Gio._promisify is a
+// no-op the second time), so call them explicitly instead.
+function readLine(stream, cancellable) {
+    return new Promise((resolve, reject) => {
+        stream.read_line_async(GLib.PRIORITY_DEFAULT, cancellable, (s, res) => {
+            try {
+                resolve(s.read_line_finish_utf8(res)[0]); // string, or null at end of stream
+            } catch (e) {
+                reject(e);
+            }
+        });
+    });
+}
+
+function writeFile(file, bytes, cancellable) {
+    return new Promise((resolve, reject) => {
+        file.replace_contents_bytes_async(bytes, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, cancellable, (f, res) => {
+            try {
+                resolve(f.replace_contents_finish(res));
+            } catch (e) {
+                reject(e);
+            }
+        });
+    });
+}
 
 const CLIPBOARD = St.ClipboardType.CLIPBOARD;
 const DEFAULT_SERVER = 'http://asgard:8787';
@@ -251,7 +276,7 @@ class Copia {
                 let lines = [];
                 for (;;) {
                     // eslint-disable-next-line no-await-in-loop
-                    const [line] = await data.read_line_async(GLib.PRIORITY_DEFAULT, this._eventsCancellable);
+                    const line = await readLine(data, this._eventsCancellable);
                     if (line === null)
                         break; // server closed the stream
                     if (line === '') {
@@ -411,7 +436,7 @@ class Copia {
             used.add(name);
             const file = dir.get_child(name);
             // eslint-disable-next-line no-await-in-loop
-            await file.replace_contents_bytes_async(bytes, null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, this._cancellable);
+            await writeFile(file, bytes, this._cancellable);
             uris.push(file.get_uri());
         }
         this._lastSig = `files:${uris.join('\n')}`;
