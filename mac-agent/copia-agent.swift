@@ -1,8 +1,8 @@
 // Copia macOS agent: syncs the clipboard with a Copia server.
 //
 // Config: ~/.config/copia/copia.env
+//   COPIA_SERVER=http://your-server:8787  (required)
 //   COPIA_TOKEN=...                       (required)
-//   COPIA_SERVER=http://asgard:8787       (optional)
 //   COPIA_DEVICE=my-mac                   (optional, defaults to the computer name)
 //
 // Build: swiftc -O -parse-as-library -o copia-agent copia-agent.swift
@@ -58,7 +58,7 @@ func isValidID(_ s: String) -> Bool {
 
 struct Config {
     var token = ""
-    var server = "http://asgard:8787"
+    var server = ""
     var device = ""
     var path = ""
 
@@ -426,11 +426,11 @@ enum CopiaAgentMain {
     static func main() async {
         setvbuf(stdout, nil, _IOLBF, 0) // line-buffered, so the log file updates live
         let cfg = Config.load()
-        guard !cfg.token.isEmpty else {
-            logLine("no COPIA_TOKEN in \(cfg.path)")
+        guard !cfg.server.isEmpty, !cfg.token.isEmpty else {
+            logLine("not set up: add COPIA_SERVER and COPIA_TOKEN to \(cfg.path)")
             exit(1)
         }
-        guard URL(string: cfg.server) != nil else {
+        guard URL(string: cfg.server)?.host != nil else {
             logLine("invalid COPIA_SERVER: \(cfg.server)")
             exit(1)
         }

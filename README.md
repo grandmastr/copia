@@ -15,9 +15,21 @@ A self-hosted clipboard that syncs text, images and files between Linux, macOS, 
 
 - **Server** (`server/`): a single Go binary with no third-party dependencies. It stores the latest clipboard items (text, an image, or one or more files) and pushes each new item to connected devices over Server-Sent Events.
 - **Desktop agents** watch the local clipboard, upload new items, and apply items arriving from other devices. Items larger than the auto-sync limit only download when you paste.
-- **iOS** (planned): two Shortcuts, *Send Clip* and *Get Clip*. iOS doesn't let apps watch the clipboard in the background, so on iPhone and iPad it's one tap rather than automatic.
+- **iOS**: two Shortcuts, *Send to Copia* and *Get from Copia*. iOS doesn't let apps watch the clipboard in the background, so on iPhone and iPad it's one tap rather than automatic.
 
 Run it on a private network such as [Tailscale](https://tailscale.com) and protect it with a token. It isn't designed to be exposed to the public internet.
+
+No third-party dependencies: the server uses only Go's standard library, the GNOME extension only libraries GNOME ships, and the Mac agent only Apple's frameworks.
+
+## Quick start
+
+1. **Server**: on any always-on Linux machine you can SSH into (with Go 1.22+ and systemd), run `sudo loginctl enable-linger "$USER"` once. Then, from your workstation:
+   ```bash
+   ./server/deploy/deploy.sh <ssh-host>
+   ```
+   The first deploy generates a token in `~/copia/copia.env` on the server.
+2. **Each computer**: copy [`copia.env.example`](copia.env.example) to `~/.config/copia/copia.env`, set `COPIA_SERVER` to your server's address and `COPIA_TOKEN` to the token from step 1, then `chmod 600` it.
+3. **Install the client**: the [GNOME extension](#gnome-extension-gnome-extension) on Linux, the [Mac agent](#macos-agent-mac-agent) on macOS, and the [Shortcuts](#iphone--ipad-ios-shortcuts) on iPhone and iPad.
 
 ## Server
 
@@ -85,17 +97,13 @@ This copies the source to the host and builds it there (Go 1.22+ needed on the h
 
 ## GNOME extension (`gnome-extension/`)
 
-Watches the clipboard and uploads what you copy: text, images, and files copied in Nautilus. It also receives items from your other devices live. Received files are saved to `~/.cache/copia/<id>/` and pasted as normal files. A top-bar menu shows connection status, a sync on/off switch, "Send clipboard now", and recent items (click one to put it on this computer's clipboard, including large items that weren't synced automatically).
+Watches the clipboard and uploads what you copy: text, images, and files copied in the Files app (Nautilus). It also receives items from your other devices live. Received files are saved to `~/.cache/copia/<id>/` and pasted as normal files. A top-bar menu shows connection status, a sync on/off switch, "Send clipboard now", and recent items (click one to put it on this computer's clipboard, including large items that weren't synced automatically).
 
 Received files are kept only while they're the current item: older downloads are deleted when a new item arrives, when the server removes an item, and at login. It skips anything a password manager marks as secret (`x-kde-passwordManagerHint`). Folders aren't synced yet.
 
-Setup:
+Setup (after creating `~/.config/copia/copia.env`, see [Quick start](#quick-start)):
 
 ```bash
-mkdir -p ~/.config/copia
-# COPIA_TOKEN is required. COPIA_SERVER defaults to http://asgard:8787, COPIA_DEVICE to the hostname.
-printf 'COPIA_TOKEN=%s\nCOPIA_SERVER=http://your-server:8787\n' "<token>" > ~/.config/copia/copia.env
-chmod 600 ~/.config/copia/copia.env
 ./gnome-extension/install.sh      # on Wayland, log out and back in, then:
 gnome-extensions enable copia@grandmastr.github.io
 ```

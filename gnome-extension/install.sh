@@ -15,9 +15,11 @@ ln -sfn "$SRC" "$DEST"
 echo "Linked $DEST -> $SRC"
 
 CONF="${XDG_CONFIG_HOME:-$HOME/.config}/copia/copia.env"
-if ! grep -q '^COPIA_TOKEN=.\+' "$CONF" 2>/dev/null; then
-  echo "warning: no COPIA_TOKEN in $CONF; the extension needs it" >&2
-fi
+for key in COPIA_SERVER COPIA_TOKEN; do
+  if ! grep -q "^$key=." "$CONF" 2>/dev/null; then
+    echo "warning: no $key in $CONF (see copia.env.example); the extension needs it" >&2
+  fi
+done
 
 if gnome-extensions info "$UUID" >/dev/null 2>&1; then
   gnome-extensions enable "$UUID"

@@ -10,11 +10,10 @@ DEVICE="${1:-iphone}"
 
 TOKEN="$(sed -n 's/^COPIA_TOKEN=//p' "$CONF" | tr -d '"'"'"' ')"
 SERVER="$(sed -n 's/^COPIA_SERVER=//p' "$CONF" | tr -d '"'"'"' ')"
-SERVER="${SERVER:-http://asgard:8787}"
 SERVER="${SERVER%/}"
 
-if [ -z "$TOKEN" ]; then
-  echo "error: no COPIA_TOKEN in $CONF" >&2
+if [ -z "$TOKEN" ] || [ -z "$SERVER" ]; then
+  echo "error: COPIA_SERVER and COPIA_TOKEN must be set in $CONF (see copia.env.example)" >&2
   exit 1
 fi
 if ! command -v shortcuts >/dev/null; then

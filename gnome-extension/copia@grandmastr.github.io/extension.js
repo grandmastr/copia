@@ -1,8 +1,8 @@
 // Copia: GNOME Shell extension that syncs the clipboard with a Copia server.
 //
 // Config: ~/.config/copia/copia.env
+//   COPIA_SERVER=http://your-server:8787  (required)
 //   COPIA_TOKEN=...                       (required)
-//   COPIA_SERVER=http://asgard:8787       (optional)
 //   COPIA_DEVICE=my-laptop                (optional, defaults to the hostname)
 
 import Clutter from 'gi://Clutter';
@@ -51,7 +51,6 @@ function writeFile(file, bytes, cancellable) {
 }
 
 const CLIPBOARD = St.ClipboardType.CLIPBOARD;
-const DEFAULT_SERVER = 'http://asgard:8787';
 const DEFAULT_AUTOSYNC_LIMIT = 20 * 1024 * 1024;
 const DEFAULT_MAX_UPLOAD = 100 * 1024 * 1024;
 const RECENT_LIMIT = 8;
@@ -91,7 +90,7 @@ function readConfig() {
     return {
         path,
         token: cfg.COPIA_TOKEN ?? '',
-        server: (cfg.COPIA_SERVER || DEFAULT_SERVER).replace(/\/+$/, ''),
+        server: (cfg.COPIA_SERVER ?? '').replace(/\/+$/, ''),
         device: cfg.COPIA_DEVICE || GLib.get_host_name(),
         debug: cfg.COPIA_DEBUG ?? '',
     };
@@ -232,8 +231,8 @@ class Copia {
         this._indicator = new CopiaIndicator(this);
         Main.panel.addToStatusArea(uuid, this._indicator);
 
-        if (!this._cfg.token) {
-            this._indicator.setStatus(`No token — add COPIA_TOKEN to ${this._cfg.path}`, false);
+        if (!this._cfg.server || !this._cfg.token) {
+            this._indicator.setStatus(`Not set up — add COPIA_SERVER and COPIA_TOKEN to ${this._cfg.path}`, false);
             return;
         }
 

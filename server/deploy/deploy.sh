@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 # Copy the server source to the host, build it there, and (re)start the user service.
-# Usage: ./deploy/deploy.sh [ssh-host]   (default: asgard)
+# Usage: ./server/deploy/deploy.sh <ssh-host>
 set -euo pipefail
 
-HOST="${1:-asgard}"
+if [ $# -ne 1 ]; then
+  echo "usage: $0 <ssh-host>   (the machine that will run the Copia server)" >&2
+  exit 1
+fi
+HOST="$1"
 cd "$(dirname "$0")/.."
 
 echo "==> Copying source to $HOST"
