@@ -70,7 +70,7 @@ func loadConfig() (Config, error) {
 		return c, errors.New("COPIA_TOKEN must be set to at least 16 characters (generate one with: openssl rand -hex 32)")
 	}
 	var err error
-	if c.MaxItems, err = strconv.Atoi(env("COPIA_MAX_ITEMS", "50")); err != nil || c.MaxItems < 1 {
+	if c.MaxItems, err = strconv.Atoi(env("COPIA_MAX_ITEMS", "1")); err != nil || c.MaxItems < 1 {
 		return c, errors.New("COPIA_MAX_ITEMS must be a positive integer")
 	}
 	if c.MaxAge, err = time.ParseDuration(env("COPIA_MAX_AGE", "24h")); err != nil || c.MaxAge <= 0 {

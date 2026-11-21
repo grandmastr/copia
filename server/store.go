@@ -175,7 +175,7 @@ func (s *Store) Delete(id string) bool {
 }
 
 // Prune drops items beyond maxItems or older than maxAge. The newest item is
-// always kept so the clipboard is never emptied just by time passing.
+// always kept: it stays until something replaces it.
 func (s *Store) Prune() []string {
 	s.mu.Lock()
 	defer s.mu.Unlock()

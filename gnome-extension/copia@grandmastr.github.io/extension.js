@@ -112,6 +112,29 @@ function clipboardContent(mimetype) {
     });
 }
 
+// Recursively delete a file or directory (small trees only: runs synchronously).
+function deleteTree(file) {
+    try {
+        const children = file.enumerate_children('standard::name,standard::type', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, null);
+        let info;
+        while ((info = children.next_file(null)) !== null) {
+            const child = file.get_child(info.get_name());
+            if (info.get_file_type() === Gio.FileType.DIRECTORY)
+                deleteTree(child);
+            else
+                child.delete(null);
+        }
+        children.close(null);
+    } catch (e) {
+        if (!(e instanceof GLib.Error) ||
+            !(e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.NOT_FOUND) || e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.NOT_DIRECTORY)))
+            log(`cleanup ${file.get_path()}: ${e.message}`);
+    }
+    try {
+        file.delete(null);
+    } catch {}
+}
+
 function parseUriList(text, skipFirstLine) {
     let lines = text.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
     if (skipFirstLine)
@@ -157,7 +180,7 @@ class CopiaIndicator extends PanelMenu.Button {
         send.connect('activate', () => copia.sendNow());
         this.menu.addMenuItem(send);
 
-        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem('Recent — click to paste here'));
+        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem('On the server — click to paste here'));
         this._recent = new PopupMenu.PopupMenuSection();
         this.menu.addMenuItem(this._recent);
         this.setRecent([]);
@@ -171,7 +194,7 @@ class CopiaIndicator extends PanelMenu.Button {
     setRecent(items) {
         this._recent.removeAll();
         if (!items.length) {
-            this._recent.addMenuItem(new PopupMenu.PopupMenuItem('Nothing yet', {reactive: false}));
+            this._recent.addMenuItem(new PopupMenu.PopupMenuItem('Empty', {reactive: false}));
             return;
         }
         for (const item of items) {
@@ -199,6 +222,7 @@ class Copia {
         this._cancellable = new Gio.Cancellable();
         this._cacheDir = GLib.build_filenamev([GLib.get_user_cache_dir(), 'copia']);
         this._debug = ['1', 'true', 'yes'].includes((this._cfg.debug ?? '').toLowerCase());
+        this._clearCache(null); // files received in a previous session are no longer on any clipboard
 
         this._session = new Soup.Session({timeout: 60, user_agent: 'copia-gnome/0.1'});
         this._eventsSession = new Soup.Session({timeout: 0, idle_timeout: 0, user_agent: 'copia-gnome/0.1'});
@@ -360,6 +384,9 @@ class Copia {
                 this._receive(payload);
             break;
         case 'delete':
+            // Expired or replaced on the server: drop our downloaded copy too.
+            if (/^[0-9a-f]{16}-[0-9a-f]{8}$/.test(payload.id ?? ''))
+                deleteTree(Gio.File.new_for_path(GLib.build_filenamev([this._cacheDir, payload.id])));
             this._recent = this._recent.filter(i => i.id !== payload.id);
             this._indicator?.setRecent(this._recent);
             break;
@@ -416,6 +443,7 @@ class Copia {
             this._lastSig = `text:${text}`;
             this._ignoreUntil = Date.now() + 1000;
             clipboard.set_text(CLIPBOARD, text);
+            this._clearCache(null);
             return;
         }
         if (item.kind === 'image') {
@@ -424,6 +452,7 @@ class Copia {
             this._lastSig = `image:${GLib.compute_checksum_for_bytes(GLib.ChecksumType.SHA256, bytes)}`;
             this._ignoreUntil = Date.now() + 1000;
             clipboard.set_content(CLIPBOARD, mime, bytes);
+            this._clearCache(null);
             return;
         }
 
@@ -449,6 +478,24 @@ class Copia {
         this._lastSig = `files:${uris.join('\n')}`;
         this._ignoreUntil = Date.now() + 1000;
         clipboard.set_content(CLIPBOARD, FILES_TYPE, new GLib.Bytes(encoder.encode(`copy\n${uris.join('\n')}`)));
+        this._clearCache(item.id);
+    }
+
+    // Keep at most one received item's files on disk (the one on the clipboard now).
+    _clearCache(keepId) {
+        const root = Gio.File.new_for_path(this._cacheDir);
+        try {
+            const children = root.enumerate_children('standard::name', Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS, null);
+            let info;
+            while ((info = children.next_file(null)) !== null) {
+                if (info.get_name() !== keepId)
+                    deleteTree(root.get_child(info.get_name()));
+            }
+            children.close(null);
+        } catch (e) {
+            if (!(e instanceof GLib.Error) || !e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.NOT_FOUND))
+                log(`cache cleanup: ${e.message}`);
+        }
     }
 
     // ---------- uploading local copies ----------

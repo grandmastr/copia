@@ -28,8 +28,8 @@ Run it on a private network such as [Tailscale](https://tailscale.com) and prote
 | `COPIA_TOKEN` | *(required)* | Shared secret, at least 16 characters. Generate one with `openssl rand -hex 32` |
 | `COPIA_ADDR` | `:8787` | Address to listen on |
 | `COPIA_DATA` | `~/copia/data` | Storage directory |
-| `COPIA_MAX_ITEMS` | `50` | Items to keep |
-| `COPIA_MAX_AGE` | `24h` | Drop items older than this. The newest item is always kept |
+| `COPIA_MAX_ITEMS` | `1` | Items to keep. With 1 (the default), each copy replaces the last and the old one is deleted from disk |
+| `COPIA_MAX_AGE` | `24h` | Drop older items after this. The newest item is always kept until something replaces it |
 | `COPIA_AUTOSYNC_LIMIT` | `20MB` | Larger items are marked `autoSync: false`, so clients fetch them only on paste |
 | `COPIA_MAX_UPLOAD` | `2GB` | Hard upload limit |
 
@@ -87,7 +87,7 @@ This copies the source to the host and builds it there (Go 1.22+ needed on the h
 
 Watches the clipboard and uploads what you copy: text, images, and files copied in Nautilus. It also receives items from your other devices live. Received files are saved to `~/.cache/copia/<id>/` and pasted as normal files. A top-bar menu shows connection status, a sync on/off switch, "Send clipboard now", and recent items (click one to put it on this computer's clipboard, including large items that weren't synced automatically).
 
-It skips anything a password manager marks as secret (`x-kde-passwordManagerHint`). Folders aren't synced yet.
+Received files are kept only while they're the current item: older downloads are deleted when a new item arrives, when the server removes an item, and at login. It skips anything a password manager marks as secret (`x-kde-passwordManagerHint`). Folders aren't synced yet.
 
 Setup:
 
