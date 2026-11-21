@@ -8,7 +8,7 @@ cd "$(dirname "$0")/.."
 
 echo "==> Copying source to $HOST"
 ssh "$HOST" 'mkdir -p ~/copia/src ~/copia/bin ~/copia/data ~/.config/systemd/user'
-scp -q go.mod ./*.go "$HOST":copia/src/
+scp -q go.mod ./*.go ../README.md "$HOST":copia/src/
 scp -q deploy/copia.service "$HOST":.config/systemd/user/copia.service
 
 echo "==> Building and restarting on $HOST"
