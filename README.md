@@ -102,9 +102,22 @@ gnome-extensions enable copia@grandmastr.github.io
 
 Logs: `journalctl --user -f -o cat /usr/bin/gnome-shell | grep copia`
 
+## macOS agent (`mac-agent/`)
+
+A small Swift program that runs in the background (a launchd agent, started at login). It checks the clipboard twice a second, uploads text, images and files copied in Finder, and puts items from your other devices on the clipboard, so Cmd+V and pasting files in Finder both work. Things you copy on an iPhone or iPad reach the Mac through Apple's Universal Clipboard, and the agent passes them on to the server.
+
+Requires macOS 12+ and the Xcode command line tools (`xcode-select --install`). Uses the same `~/.config/copia/copia.env` as Linux.
+
+```bash
+./mac-agent/install.sh          # builds, installs ~/.local/bin/copia-agent, starts it at login
+tail -f ~/Library/Logs/copia.log
+```
+
+Items over the auto-sync limit are skipped on the Mac and noted in the log. Newer macOS versions may ask once whether `copia-agent` may read the clipboard; allow it.
+
 ## Status
 
 - [x] Server
 - [x] GNOME Shell extension (Ubuntu / Wayland)
-- [ ] macOS agent (Swift)
+- [x] macOS agent (Swift)
 - [ ] iOS Shortcuts
