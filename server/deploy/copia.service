@@ -1,0 +1,14 @@
+[Unit]
+Description=Copia clipboard server
+Documentation=file://%h/copia/src/README.md
+
+[Service]
+EnvironmentFile=%h/copia/copia.env
+ExecStart=%h/copia/bin/copia-server
+Restart=on-failure
+RestartSec=2
+NoNewPrivileges=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,8 @@
+# build output
+/server/copia-server
+*.test
+
+# local data / secrets
+copia.env
+*.env
+data/
