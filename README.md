@@ -123,6 +123,7 @@ copia.env.example  Client configuration template
 - Sync folders (as a zip)
 - A menu bar icon for the Mac agent
 - Ready-signed iOS shortcuts that ask for the server and token on import
+- An iPhone/iPad keyboard extension with a "Paste from Copia" key that types the current item straight into any text field, with no shortcut to run first (iOS can't update the clipboard in the background, but a keyboard can insert text directly)
 
 ## Contributing
 
