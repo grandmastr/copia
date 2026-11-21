@@ -102,9 +102,13 @@ function clipboardText() {
     });
 }
 
+// Resolves to a Uint8Array copy (or null). The GBytes passed to the callback is only
+// valid during the callback, so it must be copied before the promise resolves.
 function clipboardContent(mimetype) {
     return new Promise(resolve => {
-        St.Clipboard.get_default().get_content(CLIPBOARD, mimetype, (_c, bytes) => resolve(bytes));
+        St.Clipboard.get_default().get_content(CLIPBOARD, mimetype, (_c, bytes) => {
+            resolve(bytes && bytes.get_size() > 0 ? new Uint8Array(bytes.toArray()) : null);
+        });
     });
 }
 
@@ -486,8 +490,8 @@ class Copia {
         // 1. Copied files (Nautilus and most apps offer one of these).
         const uriType = types.includes('text/uri-list') ? 'text/uri-list' : types.includes(FILES_TYPE) ? FILES_TYPE : null;
         if (uriType) {
-            const bytes = await clipboardContent(uriType);
-            const uris = bytes ? parseUriList(decoder.decode(bytes.toArray()), uriType === FILES_TYPE) : [];
+            const data = await clipboardContent(uriType);
+            const uris = data ? parseUriList(decoder.decode(data), uriType === FILES_TYPE) : [];
             if (uris.length && uris.every(u => u.startsWith('file://'))) {
                 await this._uploadFiles(uris, manual);
                 return;
@@ -512,9 +516,10 @@ class Copia {
         // 3. Image data (screenshots, "Copy Image" in a browser).
         const imageType = IMAGE_TYPES.find(t => types.includes(t));
         if (imageType) {
-            const bytes = await clipboardContent(imageType);
-            if (!bytes || bytes.get_size() === 0)
+            const data = await clipboardContent(imageType);
+            if (!data)
                 return;
+            const bytes = new GLib.Bytes(data);
             const sig = `image:${GLib.compute_checksum_for_bytes(GLib.ChecksumType.SHA256, bytes)}`;
             if (sig === this._lastSig)
                 return;
