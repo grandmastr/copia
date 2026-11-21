@@ -60,10 +60,20 @@ def post_form(uuid, form_items):
     return request(uuid, "POST", "/clip", WFHTTPBodyType="Form", WFFormValues=dict_field(form_items))
 
 
-def if_is(group, input_uuid, input_name, value):
+def as_text(var):
+    """Coerce a variable to Text, so conditions like "is" are available on it."""
+    var = {**var, "Value": {**var["Value"], "Aggrandizements": [
+        {"Type": "WFCoercionVariableAggrandizement", "CoercionItemClass": "WFStringContentItem"}]}}
+    return var
+
+
+def if_is(group, input_uuid, input_name, value, coerce_text=False):
+    var = attachment(input_uuid, input_name)
+    if coerce_text:
+        var = as_text(var)
     return action("is.workflow.actions.conditional", GroupingIdentifier=group, WFControlFlowMode=0,
                   WFCondition=4, WFConditionalActionString=value,
-                  WFInput={"Type": "Variable", "Variable": attachment(input_uuid, input_name)})
+                  WFInput={"Type": "Variable", "Variable": var})
 
 
 def otherwise(group):
@@ -124,7 +134,9 @@ def get_from_copia():
         request(meta, "GET", "/clip/latest"),
         action("is.workflow.actions.getvalueforkey", UUID=kind, WFDictionaryKey="kind",
                WFGetDictionaryValueType="Value", WFInput=attachment(meta, "Contents of URL")),
-        if_is(group, kind, "Dictionary Value", "text"),
+        # A Dictionary Value has no declared type, so Shortcuts only offers "has any value"
+        # on it; coercing it to Text makes "is" available.
+        if_is(group, kind, "Dictionary Value", "text", coerce_text=True),
         request(raw_text, "GET", "/clip/latest/raw"),
         action("is.workflow.actions.detect.text", UUID=as_text, WFInput=attachment(raw_text, "Contents of URL")),
         copy_to_clipboard(as_text, "Text"),
