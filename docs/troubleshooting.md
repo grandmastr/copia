@@ -38,6 +38,7 @@ curl -H "Authorization: Bearer <token>" http://<server>:8787/clip/latest
 
 - **iOS asks "Allow Paste?" every time:** Settings → Apps → Shortcuts → Paste from Other Apps → Allow.
 - **Copies from other devices don't show up when I paste:** iOS never updates the clipboard in the background, so run *Get from Copia* first: triple-tap the back of the phone, or set up the automation in [Pasting on the iPhone](ios.md#pasting-on-the-iphone).
+- **Send to Copia works when run from the Shortcuts app, but not from a gesture:** set Settings → Apps → Shortcuts → Paste from Other Apps → **Allow** (iOS can't ask permission during a gesture and silently blocks the read), and check the gesture is assigned to it. Triple tap is easy to miss; the Action Button or a Control Center button is more reliable. See [Triggers](ios.md#triggers).
 - **The shortcut fails with a connection error:** Tailscale isn't connected on the iPhone.
 - **`build.sh` fails to sign:** `shortcuts sign` needs macOS 12+ and an Apple ID signed in on the Mac.
 - **Something looks wrong inside a shortcut:** open it in the Shortcuts app; every step is visible and editable.

@@ -43,7 +43,7 @@ Apple's Universal Clipboard is wonderful until one of your computers isn't a Mac
 |---|---|---|
 | **Linux** (GNOME 48–50, Wayland) | [GNOME Shell extension](docs/linux.md) | Automatic, both ways |
 | **macOS** 12+ | [Background agent](docs/macos.md) (Swift, launchd) | Automatic, both ways |
-| **iPhone / iPad** | [Two Shortcuts](docs/ios.md) on Back Tap | One tap each way (iOS doesn't allow background clipboard access) |
+| **iPhone / iPad** | [Two Shortcuts](docs/ios.md) on Back Tap, the Action Button or Control Center | One tap each way (iOS doesn't allow background clipboard access) |
 | **Server** | [Go binary](docs/server.md) on any always-on Linux machine | Holds the current item |
 
 While a Mac is awake and nearby, Apple's Universal Clipboard also carries iPhone copies to the Mac, and the agent forwards them, so many iPhone copies sync with no tap at all.
