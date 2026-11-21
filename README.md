@@ -31,7 +31,7 @@ Run it on a private network such as [Tailscale](https://tailscale.com) and prote
 | `COPIA_MAX_ITEMS` | `1` | Items to keep. With 1 (the default), each copy replaces the last and the old one is deleted from disk |
 | `COPIA_MAX_AGE` | `24h` | Drop older items after this. The newest item is always kept until something replaces it |
 | `COPIA_AUTOSYNC_LIMIT` | `20MB` | Larger items are marked `autoSync: false`, so clients fetch them only on paste |
-| `COPIA_MAX_UPLOAD` | `2GB` | Hard upload limit |
+| `COPIA_MAX_UPLOAD` | `100MB` | Hard limit per item. Larger uploads are rejected with `413` |
 
 ### API
 
@@ -45,7 +45,7 @@ Every endpoint except `/healthz` needs `Authorization: Bearer <token>` (or `X-Co
 | `GET /clip?limit=20` | Recent items, newest first |
 | `GET /clip/{id}` · `/clip/{id}/raw` · `/clip/{id}/parts/{n}` | One item, its content, or one of its files |
 | `DELETE /clip/{id}` | Remove an item |
-| `GET /events` | Server-Sent Events: `hello` (on connect, includes the latest item), `clip` (new item), `delete` |
+| `GET /events` | Server-Sent Events: `hello` (on connect, includes the latest item and the size limits), `clip` (new item), `delete` |
 | `GET /healthz` | Liveness check (no auth) |
 
 You can upload in three ways:

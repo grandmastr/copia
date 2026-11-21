@@ -76,7 +76,7 @@ func loadConfig() (Config, error) {
 	if c.MaxAge, err = time.ParseDuration(env("COPIA_MAX_AGE", "24h")); err != nil || c.MaxAge <= 0 {
 		return c, errors.New("COPIA_MAX_AGE must be a positive duration such as 24h or 90m")
 	}
-	if c.MaxUpload, err = parseSize(env("COPIA_MAX_UPLOAD", "2GB")); err != nil || c.MaxUpload <= 0 {
+	if c.MaxUpload, err = parseSize(env("COPIA_MAX_UPLOAD", "100MB")); err != nil || c.MaxUpload <= 0 {
 		return c, fmt.Errorf("COPIA_MAX_UPLOAD: %v", err)
 	}
 	if c.AutoSyncLimit, err = parseSize(env("COPIA_AUTOSYNC_LIMIT", "20MB")); err != nil {

@@ -531,7 +531,7 @@ func (s *Server) handleDelete(w http.ResponseWriter, r *http.Request) {
 
 // handleEvents streams Server-Sent Events:
 //
-//	event: hello   data: {"latest": Item|null, "autoSyncLimit": n}   (on connect)
+//	event: hello   data: {"latest": Item|null, "autoSyncLimit": n, "maxUpload": n}   (on connect)
 //	event: clip    data: Item                                         (new item)
 //	event: delete  data: {"id": "..."}                                (item removed)
 //
@@ -547,7 +547,7 @@ func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) {
 	ch := s.hub.Subscribe() // subscribe before reading latest so nothing is missed
 	defer s.hub.Unsubscribe(ch)
 
-	hello, _ := json.Marshal(map[string]any{"latest": s.store.Latest(), "autoSyncLimit": s.cfg.AutoSyncLimit})
+	hello, _ := json.Marshal(map[string]any{"latest": s.store.Latest(), "autoSyncLimit": s.cfg.AutoSyncLimit, "maxUpload": s.cfg.MaxUpload})
 	if _, err := fmt.Fprintf(w, "retry: 3000\nevent: hello\ndata: %s\n\n", hello); err != nil {
 		return
 	}

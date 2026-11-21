@@ -53,6 +53,7 @@ function writeFile(file, bytes, cancellable) {
 const CLIPBOARD = St.ClipboardType.CLIPBOARD;
 const DEFAULT_SERVER = 'http://asgard:8787';
 const DEFAULT_AUTOSYNC_LIMIT = 20 * 1024 * 1024;
+const DEFAULT_MAX_UPLOAD = 100 * 1024 * 1024;
 const RECENT_LIMIT = 8;
 // Clipboard owners that mark their content as secret (e.g. KeePassXC). Never upload these.
 const SECRET_HINTS = ['x-kde-passwordManagerHint'];
@@ -212,6 +213,7 @@ class Copia {
         this._running = true;
         this._syncEnabled = true;
         this._autoSyncLimit = DEFAULT_AUTOSYNC_LIMIT;
+        this._maxUpload = DEFAULT_MAX_UPLOAD;
         this._recent = [];
         this._seenIds = new Set();
         this._lastSig = null;     // signature of what we last uploaded or applied
@@ -366,6 +368,7 @@ class Copia {
         switch (event) {
         case 'hello': {
             this._autoSyncLimit = payload.autoSyncLimit ?? DEFAULT_AUTOSYNC_LIMIT;
+            this._maxUpload = payload.maxUpload ?? DEFAULT_MAX_UPLOAD;
             const host = GLib.Uri.parse(this._cfg.server, GLib.UriFlags.NONE).get_host();
             this._setConnected(true, `Connected to ${host}`);
             this._refreshRecent();
@@ -570,6 +573,10 @@ class Copia {
             const sig = `image:${GLib.compute_checksum_for_bytes(GLib.ChecksumType.SHA256, bytes)}`;
             if (sig === this._lastSig)
                 return;
+            if (bytes.get_size() > this._maxUpload) {
+                Main.notify('Copia', `Image not sent: ${GLib.format_size(bytes.get_size())} is over the server's ${GLib.format_size(this._maxUpload)} limit.`);
+                return;
+            }
             if (bytes.get_size() > this._autoSyncLimit && !manual) {
                 Main.notify('Copia', `Image not synced: ${GLib.format_size(bytes.get_size())} is over the auto-sync limit. Use “Send clipboard now”.`);
                 return;
@@ -600,6 +607,10 @@ class Copia {
             }
             total += info.get_size();
             files.push({file, name: info.get_display_name(), type: Gio.content_type_get_mime_type(info.get_content_type() ?? '') ?? 'application/octet-stream'});
+        }
+        if (total > this._maxUpload) {
+            Main.notify('Copia', `Not sent: ${GLib.format_size(total)} is over the server's ${GLib.format_size(this._maxUpload)} limit.`);
+            return;
         }
         if (total > this._autoSyncLimit && !manual) {
             Main.notify('Copia', `Not synced: ${GLib.format_size(total)} is over the ${GLib.format_size(this._autoSyncLimit)} auto-sync limit. Use “Send clipboard now” to send it anyway.`);
