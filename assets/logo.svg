@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Copia">
+  <title>Copia</title>
+  <defs>
+    <linearGradient id="copia-suit" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1F4C8A"/>
+      <stop offset="1" stop-color="#0A1C3A"/>
+    </linearGradient>
+    <linearGradient id="copia-tie" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9CC2EE"/>
+      <stop offset="1" stop-color="#4A80C2"/>
+    </linearGradient>
+    <linearGradient id="copia-ink" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F5F9FE"/>
+      <stop offset="1" stop-color="#CADCF1"/>
+    </linearGradient>
+  </defs>
+  <!-- suit / board -->
+  <rect x="120" y="100" width="272" height="368" rx="40" fill="url(#copia-suit)"/>
+  <rect x="136" y="116" width="240" height="336" rx="28" fill="none" stroke="#9CC2EE" stroke-opacity="0.25" stroke-width="2" stroke-dasharray="1 7" stroke-linecap="round"/>
+  <!-- shirt collar -->
+  <path d="M256,100 L206,100 L226,160 Z" fill="#EEF4FB"/>
+  <path d="M256,100 L306,100 L286,160 Z" fill="#EEF4FB"/>
+  <path d="M226,160 L256,104 L286,160" fill="none" stroke="#C3D6EE" stroke-width="2" stroke-linejoin="round"/>
+  <!-- bow tie (the clip) -->
+  <path d="M256,104 C234,86 200,70 180,77 C166,82 164,126 180,131 C200,138 234,122 256,104 Z" fill="url(#copia-tie)"/>
+  <path d="M256,104 C278,86 312,70 332,77 C346,82 348,126 332,131 C312,138 278,122 256,104 Z" fill="url(#copia-tie)"/>
+  <path d="M193,89 C210,95 228,100 244,104 M193,119 C210,113 228,108 244,104 M319,89 C302,95 284,100 268,104 M319,119 C302,113 284,108 268,104"
+        fill="none" stroke="#2C5C9B" stroke-opacity="0.4" stroke-width="2" stroke-linecap="round"/>
+  <rect x="241" y="89" width="30" height="30" rx="8" fill="#2C5C9B"/>
+  <rect x="246" y="94" width="20" height="20" rx="5" fill="#73A3DA"/>
+  <!-- monogram -->
+  <path d="M268.9 400.0Q229.1 400.0 206.9 378.3Q184.6 356.7 184.6 317.6Q184.6 275.3 206.0 253.7Q227.4 232.0 269.4 232.0Q294.9 232.0 324.2 238.2L324.9 274.0H316.9L313.2 252.8Q304.7 247.5 293.4 244.6Q282.1 241.8 270.3 241.8Q239.0 241.8 224.6 260.2Q210.2 278.6 210.2 317.3Q210.2 353.0 225.2 371.8Q240.3 390.6 269.1 390.6Q283.0 390.6 295.4 387.2Q307.7 383.9 314.9 378.3L319.4 353.8H327.4L326.6 392.3Q299.8 400.0 268.9 400.0Z" fill="url(#copia-ink)"/>
+</svg>
