@@ -109,28 +109,32 @@ def workflow(actions, color, glyph):
     }
 
 
-def send_to_copia():
-    clip, kind, group = "C0F1A001-0000-4000-8000-000000000001", "C0F1A001-0000-4000-8000-000000000002", "C0F1A001-0000-4000-8000-0000000000A0"
-    return workflow([
+def uid(prefix, n):
+    """Action UUIDs must be unique within a shortcut; each flow gets its own prefix."""
+    return f"{prefix}-0000-4000-8000-{n:012X}"
+
+
+def send_actions(prefix):
+    clip, kind, group = uid(prefix, 1), uid(prefix, 2), uid(prefix, 0xA0)
+    return [
         action("is.workflow.actions.getclipboard", UUID=clip),
         action("is.workflow.actions.getitemtype", UUID=kind, WFInput=attachment(clip, "Clipboard")),
         if_is(group, kind, "Type", "Text"),
-        post_form("C0F1A001-0000-4000-8000-000000000004", [text_item("text", text_var(clip, "Clipboard"))]),
+        post_form(uid(prefix, 4), [text_item("text", text_var(clip, "Clipboard"))]),
         otherwise(group),
-        post_form("C0F1A001-0000-4000-8000-000000000006", [file_item("file", attachment(clip, "Clipboard"))]),
-        end_if(group, "C0F1A001-0000-4000-8000-000000000007"),
+        post_form(uid(prefix, 6), [file_item("file", attachment(clip, "Clipboard"))]),
+        end_if(group, uid(prefix, 7)),
         notification("Sent to Copia"),
-    ], color=4282601983, glyph=59511)
+    ]
 
 
-def get_from_copia():
+def get_actions(prefix):
     # Ask the server what the item is first: a plain-text download can arrive in
     # Shortcuts as a *file*, which pastes as nothing in a text field, so text is
     # converted with "Get Text from Input" before it's copied.
-    meta, kind, group = "C0F1A002-0000-4000-8000-000000000001", "C0F1A002-0000-4000-8000-000000000002", "C0F1A002-0000-4000-8000-0000000000A0"
-    raw_text, as_text, raw_other = ("C0F1A002-0000-4000-8000-000000000003", "C0F1A002-0000-4000-8000-000000000004",
-                                    "C0F1A002-0000-4000-8000-000000000005")
-    return workflow([
+    meta, kind, group = uid(prefix, 1), uid(prefix, 2), uid(prefix, 0xA0)
+    raw_text, as_text, raw_other = uid(prefix, 3), uid(prefix, 4), uid(prefix, 5)
+    return [
         request(meta, "GET", "/clip/latest"),
         action("is.workflow.actions.getvalueforkey", UUID=kind, WFDictionaryKey="kind",
                WFGetDictionaryValueType="Value", WFInput=attachment(meta, "Contents of URL")),
@@ -143,14 +147,50 @@ def get_from_copia():
         otherwise(group),
         request(raw_other, "GET", "/clip/latest/raw"),
         copy_to_clipboard(raw_other, "Contents of URL"),
-        end_if(group, "C0F1A002-0000-4000-8000-000000000006"),
+        end_if(group, uid(prefix, 6)),
         notification("Copied from Copia"),
-    ], color=4292093695, glyph=59446)
+    ]
+
+
+SEND_TITLE, GET_TITLE = "Send to Copia", "Get from Copia"
+
+
+def menu(group, prompt, titles):
+    return action("is.workflow.actions.choosefrommenu", GroupingIdentifier=group, WFControlFlowMode=0,
+                  WFMenuPrompt=prompt, WFMenuItems=titles)
+
+
+def menu_case(group, title):
+    return action("is.workflow.actions.choosefrommenu", GroupingIdentifier=group, WFControlFlowMode=1,
+                  WFMenuItemTitle=title)
+
+
+def menu_end(group, uuid):
+    return action("is.workflow.actions.choosefrommenu", GroupingIdentifier=group, WFControlFlowMode=2, UUID=uuid)
+
+
+def copia_menu():
+    # One shortcut for a single button: a two-item menu with both flows inside it.
+    # Self-contained on purpose (no "Run Shortcut"), so it works on its own.
+    group = uid("C0F1A005", 0xA0)
+    return workflow(
+        [menu(group, "Copia", [SEND_TITLE, GET_TITLE]),
+         menu_case(group, SEND_TITLE), *send_actions("C0F1A003"),
+         menu_case(group, GET_TITLE), *get_actions("C0F1A004"),
+         menu_end(group, uid("C0F1A005", 1))],
+        color=4282601983, glyph=59446)
+
+
+SHORTCUTS = {
+    "Send to Copia": lambda: workflow(send_actions("C0F1A001"), color=4282601983, glyph=59511),
+    "Get from Copia": lambda: workflow(get_actions("C0F1A002"), color=4292093695, glyph=59446),
+    "Copia": copia_menu,
+}
 
 
 if __name__ == "__main__":
-    for name, wf in [("Send to Copia", send_to_copia()), ("Get from Copia", get_from_copia())]:
+    for name, make in SHORTCUTS.items():
         path = os.path.join(HERE, f"{name}.plist")
         with open(path, "wb") as f:
-            plistlib.dump(wf, f, fmt=plistlib.FMT_XML, sort_keys=True)
+            plistlib.dump(make(), f, fmt=plistlib.FMT_XML, sort_keys=True)
         print("wrote", os.path.relpath(path))

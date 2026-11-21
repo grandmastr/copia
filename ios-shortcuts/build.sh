@@ -27,7 +27,7 @@ esac
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
-for name in "Send to Copia" "Get from Copia"; do
+for name in "Send to Copia" "Get from Copia" "Copia"; do
   sed -e "s|__TOKEN__|$TOKEN|g" -e "s|__SERVER__|$SERVER|g" -e "s|__DEVICE__|$DEVICE|g" \
     "$name.plist" > "$WORK/$name.plist"
   plutil -lint -s "$WORK/$name.plist"
@@ -37,5 +37,7 @@ for name in "Send to Copia" "Get from Copia"; do
 done
 
 echo
-echo "AirDrop both files from your Desktop to the iPhone and tap 'Add Shortcut'."
-echo "Then delete them from the Desktop: they contain your Copia token."
+echo "AirDrop the files you want from your Desktop to the iPhone and tap 'Add Shortcut':"
+echo "  Send to Copia + Get from Copia  (one trigger each), and/or"
+echo "  Copia                           (one button with a Send / Get menu)"
+echo "Then delete all three from the Desktop: they contain your Copia token."
